@@ -1,0 +1,15 @@
+[11, 11]-3-Big_City
+[11, 12]-3-Big_City
+[11, 13]-3-Big_City
+[12, 11]-3-Big_City
+[12, 12]-3-Big_City
+[12, 13]-3-Big_City
+[12, 17]-2-Mid_City
+[12, 18]-2-Mid_City
+[13, 11]-3-Big_City
+[13, 12]-3-Big_City
+[13, 13]-3-Big_City
+[13, 17]-2-Mid_City
+[13, 18]-2-Mid_City
+[17, 17]-1-Small_City
+

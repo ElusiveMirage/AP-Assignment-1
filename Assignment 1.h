@@ -47,6 +47,8 @@ int selectedOption;
 //Map display
 int xMin, xMax; //Map min x and max x pos
 int yMin, yMax; //Map min y and max y pos
+int xMinOffset;
+int yMinOffset;
 int gridRow = 0; //Number of rows for entire grid 
 int gridCol = 0; //Number of cols for entire grid 
 int mapRow = 0; //Number of rows for the actual map
@@ -56,6 +58,8 @@ string** gridArray = nullptr; //2D array for displaying the map
 void readConfigFiles(string); //Function for reading the config file
 
 void readCLFile(string);
+
+void readCCIndexFile(string);
 
 void initConfig(); //Function for initializing the map array, assigning variables etc.
 
@@ -74,5 +78,7 @@ void displayAPMapIndex();
 void displayAPMapLMH();
 
 void displayWeatherReport();
+
+void deallocMemory();
 
 void Quit();

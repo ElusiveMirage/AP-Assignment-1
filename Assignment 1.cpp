@@ -44,9 +44,11 @@ int main()
                 break;
             case 2:
                 cout << "Display cloud coverage map (cloudiness index)" << endl;
+                displayCCMapIndex();
                 break;
             case 3:
                 cout << "Display cloud coverage map (LMH)" << endl;
+                displayCCMapLMH();
                 break;
             case 4:
                 cout << "Display atmospheric pressure map (pressure index)" << endl;
@@ -66,7 +68,6 @@ int main()
         }
     }
 }
-
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
@@ -89,12 +90,30 @@ void initConfig()
     CLFile = configLines[2];
     CCFile = configLines[3];
     APFile = configLines[4];
-
+    cout << CLFile << endl;
     gridRow = ((xMax - xMin) + 1) + 3;
     gridCol = ((yMax - yMin) + 1) + 3;
 
     mapRow = (xMax - xMin) + 1;
     mapCol = (yMax - yMin) + 1;
+
+    if (xMin > 0)
+    {
+        xMinOffset = xMin;
+    }
+    else
+    {
+        xMinOffset = 0;
+    }
+
+    if (yMin > 0)
+    {
+        yMinOffset = yMin;
+    }
+    else
+    {
+        yMinOffset = 0;
+    }
 
     if (gridRow > 0)
     {
@@ -123,7 +142,9 @@ void initConfig()
         }
     }
 
+    //read in data files
     readCLFile(CLFile);
+    readCCIndexFile(CCFile);
     
     configLoaded = true;
 }
@@ -156,7 +177,7 @@ void readConfigFiles(string filename)
     }
     else
     {
-        cout << "File does not exist!" << endl;
+        cout << "Config file does not exist!" << endl;
     }
 }
 
@@ -183,16 +204,50 @@ void readCLFile(string filename)
             int id = stoi(aLine.substr(aLine.find('-') + 1, aLine.find_last_of('-')));
             string name = aLine.substr(aLine.find_last_of('-') + 1);
 
-            mapTileInfoArray[x][y].xPos = x;
-            mapTileInfoArray[x][y].yPos = y;
-            mapTileInfoArray[x][y].cityID = id;
-            mapTileInfoArray[x][y].cityName = name;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].cityID = id;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].cityName = name;
         }
         cout << endl;
     }
     else
     {
-        cout << "File does not exist!" << endl;
+        cout << "City location file does not exist!" << endl;
+    }
+}
+
+void readCCIndexFile(string filename)
+{
+    fstream inputFile(filename.c_str(), fstream::in);
+
+    if (inputFile.good())
+    {
+        cout << endl;
+        cout << "Reading contents of file : " << filename << endl;
+        cout << endl;
+
+        string aLine;
+
+        while (getline(inputFile, aLine))
+        {
+            cout << aLine << endl;
+
+            if (aLine == "") continue;
+
+            int x = stoi(aLine.substr(aLine.find('[') + 1, aLine.find(',')));
+            int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
+            int cc = stoi(aLine.substr(aLine.find('-') + 1));
+
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].cc = cc;
+        }
+        cout << endl;
+    }
+    else
+    {
+        cout << "Cloud cover file does not exist!" << endl;
     }
 }
 
@@ -214,6 +269,8 @@ void showGrid()
         }
         cout << endl;
     }
+
+    displayingMap = true;
 }
 
 void displayMap()
@@ -227,7 +284,12 @@ void displayMap()
             {
                 if (j > 1 && j < gridCol - 1)
                 {
-                    gridArray[i][j] = to_string((j - 2)) + "  ";
+                    int temp = j + yMinOffset - 2;
+
+                    if (temp >= 10)
+                        gridArray[i][j] = to_string((temp)) + " ";
+                    else
+                        gridArray[i][j] = to_string((temp)) + "  ";
                 }
             }
 
@@ -235,7 +297,12 @@ void displayMap()
             {
                 if (i > 1 && i < gridRow - 1)
                 {
-                    gridArray[i][j] = to_string((i - 2)) + "  ";
+                    int temp2 = i + xMinOffset - 2;
+
+                    if(temp2 >= 10)
+                        gridArray[i][j] = to_string((temp2)) + " ";
+                    else
+                        gridArray[i][j] = to_string((temp2)) + "  ";
                 }
             }
 
@@ -271,15 +338,94 @@ void displayCityMap()
     showGrid();
 }
 
-void Quit()
+void displayCCMapIndex()
 {
+    for (int i = 0; i < mapRow; i++)
+    {
+        for (int j = 0; j < mapCol; j++)
+        {
+            if (mapTileInfoArray[i][j].cc != NULL)
+            {
+                string temp;
+
+                if (mapTileInfoArray[i][j].cc <= 0 || mapTileInfoArray[i][j].cc < 10)
+                {
+                    temp = "0";
+                }
+
+                if (mapTileInfoArray[i][j].cc > 10 && mapTileInfoArray[i][j].cc < 100)
+                {
+                    temp = to_string(mapTileInfoArray[i][j].cc)[0];
+                }
+
+                gridArray[i + 2][j + 2] = temp + "  ";
+            }
+        }
+    }
+
+    showGrid();
+}
+
+void displayCCMapLMH()
+{
+    for (int i = 0; i < mapRow; i++)
+    {
+        for (int j = 0; j < mapCol; j++)
+        {
+            if (mapTileInfoArray[i][j].cc != NULL)
+            {
+                string temp;
+
+                if (mapTileInfoArray[i][j].cc >= 0 && mapTileInfoArray[i][j].cc < 35)
+                {
+                    temp = "L";
+                }
+                else if (mapTileInfoArray[i][j].cc >= 35 && mapTileInfoArray[i][j].cc < 65)
+                {
+                    temp = "M";
+                }
+                else if (mapTileInfoArray[i][j].cc >= 65 && mapTileInfoArray[i][j].cc < 100)
+                {
+                    temp = "H";
+                }
+
+                gridArray[i + 2][j + 2] = temp + "  ";
+            }
+        }
+    }
+
+    showGrid();
+}
+
+void deallocMemory()
+{
+    if (mapCol <= 0)
+        return;
+
+    for (int i = 0; i < mapRow; i++)
+    {
+        cout << "pointer array at memory address" << &mapTileInfoArray[i] << "deleted" << endl;
+        delete[] mapTileInfoArray[i];
+    }
+        
+    delete[] mapTileInfoArray;
+
     if (gridCol <= 0)
         return;
 
     for (int i = 0; i < gridRow; i++)
+    {
         delete[] gridArray[i];
+        cout << "array deleted" << endl;
+    }
 
     delete[] gridArray;
+}
+
+void Quit()
+{
+    deallocMemory();
 
     exit(0);
 }
+
