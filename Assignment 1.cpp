@@ -2,15 +2,13 @@
 //
 
 #include "Assignment 1.h"
-#include <vector>
-
 
 int main()
 {
-    displayingMap = false;
-
     while (!configLoaded)
     {
+        displayingMap = false;
+
         cout << "Welcome to the system or whatever the fuck" << endl;
         cout << "Please enter config file name" << endl;
 
@@ -19,25 +17,30 @@ int main()
         readConfigFiles(fileToLoad);
         
         initConfig();
+
+        displayMap();
     }
 
-    displayMap();
+    while (configLoaded) {
 
-    while (!displayingMap && configLoaded) {
-        cout << "Welcome to the system or whatever the fuck" << endl;
-        cout << "==================================================================" << endl;
-        cout << "Please select an option to proceed" << endl;
-        cout << "1) Display city map" << endl;
-        cout << "2) Display cloud coverage map (cloudiness index)" << endl;
-        cout << "3) Display cloud coverage map (LMH)" << endl;
-        cout << "4) Display atmospheric pressure map (pressure index)" << endl;
-        cout << "5) Display atmospheric pressure map (LMH)" << endl;
-        cout << "6) Display weather forecast summary report" << endl;
-        cout << "7) Exit application" << endl;
-        cin >> selectedOption;
-
-        switch (selectedOption)
+        if (!displayingMap)
         {
+            cout << endl;
+            cout << "[ Welcome to Virtual Solutions Weather Information Procesing System ]" << endl;
+            cout << "=====================================================================" << endl;
+            cout << "Please select an option to proceed" << endl;
+            cout << "1) Display city map" << endl;
+            cout << "2) Display cloud coverage map (cloudiness index)" << endl;
+            cout << "3) Display cloud coverage map (LMH)" << endl;
+            cout << "4) Display atmospheric pressure map (pressure index)" << endl;
+            cout << "5) Display atmospheric pressure map (LMH)" << endl;
+            cout << "6) Display weather forecast summary report" << endl;
+            cout << "7) Exit application" << endl;
+
+            cin >> selectedOption;
+
+            switch (selectedOption)
+            {
             case 1:
                 cout << "Display city map" << endl;
                 displayCityMap();
@@ -52,9 +55,11 @@ int main()
                 break;
             case 4:
                 cout << "Display atmospheric pressure map (pressure index)" << endl;
+                displayAPMapIndex();
                 break;
             case 5:
                 cout << "Display atmospheric pressure map (LMH)" << endl;
+                displayAPMapLMH();
                 break;
             case 6:
                 cout << "Display weather forecast summary report" << endl;
@@ -65,6 +70,18 @@ int main()
                 break;
             default:
                 break;
+            }
+        }
+        else if (displayingMap)
+        {
+            char ch;
+
+            cout << "Press Enter to return to main menu" << endl;
+
+            ch = _getch();
+
+            if (cin.get() == '\n')
+                displayingMap = false;
         }
     }
 }
@@ -90,7 +107,6 @@ void initConfig()
     CLFile = configLines[2];
     CCFile = configLines[3];
     APFile = configLines[4];
-    cout << CLFile << endl;
     gridRow = ((xMax - xMin) + 1) + 3;
     gridCol = ((yMax - yMin) + 1) + 3;
 
@@ -145,6 +161,7 @@ void initConfig()
     //read in data files
     readCLFile(CLFile);
     readCCIndexFile(CCFile);
+    readAPIndexFile(APFile);
     
     configLoaded = true;
 }
@@ -251,6 +268,40 @@ void readCCIndexFile(string filename)
     }
 }
 
+void readAPIndexFile(string filename)
+{
+    fstream inputFile(filename.c_str(), fstream::in);
+
+    if (inputFile.good())
+    {
+        cout << endl;
+        cout << "Reading contents of file : " << filename << endl;
+        cout << endl;
+
+        string aLine;
+
+        while (getline(inputFile, aLine))
+        {
+            cout << aLine << endl;
+
+            if (aLine == "") continue;
+
+            int x = stoi(aLine.substr(aLine.find('[') + 1, aLine.find(',')));
+            int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
+            int ap = stoi(aLine.substr(aLine.find('-') + 1));
+
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
+            mapTileInfoArray[x - xMinOffset][y - yMinOffset].ap = ap;
+        }
+        cout << endl;
+    }
+    else
+    {
+        cout << "Atmospheric pressure file does not exist!" << endl;
+    }
+}
+
 void showGrid()
 {
     cout << endl;
@@ -353,7 +404,7 @@ void displayCCMapIndex()
                     temp = "0";
                 }
 
-                if (mapTileInfoArray[i][j].cc > 10 && mapTileInfoArray[i][j].cc < 100)
+                if (mapTileInfoArray[i][j].cc >= 10 && mapTileInfoArray[i][j].cc < 100)
                 {
                     temp = to_string(mapTileInfoArray[i][j].cc)[0];
                 }
@@ -385,6 +436,65 @@ void displayCCMapLMH()
                     temp = "M";
                 }
                 else if (mapTileInfoArray[i][j].cc >= 65 && mapTileInfoArray[i][j].cc < 100)
+                {
+                    temp = "H";
+                }
+
+                gridArray[i + 2][j + 2] = temp + "  ";
+            }
+        }
+    }
+
+    showGrid();
+}
+
+void displayAPMapIndex()
+{
+    for (int i = 0; i < mapRow; i++)
+    {
+        for (int j = 0; j < mapCol; j++)
+        {
+            if (mapTileInfoArray[i][j].ap != NULL)
+            {
+                string temp;
+
+                if (mapTileInfoArray[i][j].ap <= 0 || mapTileInfoArray[i][j].ap < 10)
+                {
+                    temp = "0";
+                }
+
+                if (mapTileInfoArray[i][j].ap >= 10 && mapTileInfoArray[i][j].ap < 100)
+                {
+                    temp = to_string(mapTileInfoArray[i][j].ap)[0];
+                }
+
+                gridArray[i + 2][j + 2] = temp + "  ";
+            }
+        }
+    }
+
+    showGrid();
+}
+
+void displayAPMapLMH()
+{
+    for (int i = 0; i < mapRow; i++)
+    {
+        for (int j = 0; j < mapCol; j++)
+        {
+            if (mapTileInfoArray[i][j].ap != NULL)
+            {
+                string temp;
+
+                if (mapTileInfoArray[i][j].ap >= 0 && mapTileInfoArray[i][j].ap < 35)
+                {
+                    temp = "L";
+                }
+                else if (mapTileInfoArray[i][j].ap >= 35 && mapTileInfoArray[i][j].ap < 65)
+                {
+                    temp = "M";
+                }
+                else if (mapTileInfoArray[i][j].ap >= 65 && mapTileInfoArray[i][j].ap < 100)
                 {
                     temp = "H";
                 }

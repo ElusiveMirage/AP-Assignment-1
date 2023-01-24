@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <conio.h>
 
 using namespace std;
 
@@ -60,6 +61,8 @@ void readConfigFiles(string); //Function for reading the config file
 void readCLFile(string);
 
 void readCCIndexFile(string);
+
+void readAPIndexFile(string);
 
 void initConfig(); //Function for initializing the map array, assigning variables etc.
 
