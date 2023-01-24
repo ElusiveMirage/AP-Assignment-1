@@ -5,78 +5,99 @@
 
 int main()
 {
-    while (!configLoaded)
-    {
-        displayingMap = false;
+    //while (!configLoaded)
+    //{
+    //    displayingMap = false;
 
-        cout << "Welcome to the system or whatever the fuck" << endl;
-        cout << "Please enter config file name" << endl;
+    //    cout << "Please enter config file name" << endl;
 
-        cin >> fileToLoad;
+    //    cin >> fileToLoad;
 
-        readConfigFiles(fileToLoad);
-        
-        initConfig();
+    //    readConfigFiles(fileToLoad);
+    //    
+    //    initConfig();
 
-        displayMap();
-    }
+    //    displayMap();
+    //}
 
-    while (configLoaded) {
+    while (true) {
 
         if (!displayingMap)
         {
             cout << endl;
+            cout << "Student ID   : 7895379" << endl;
+            cout << "Student Name : Tan Jing Jie Javier" << endl;
             cout << "[ Welcome to Virtual Solutions Weather Information Procesing System ]" << endl;
             cout << "=====================================================================" << endl;
-            cout << "Please select an option to proceed" << endl;
-            cout << "1) Display city map" << endl;
-            cout << "2) Display cloud coverage map (cloudiness index)" << endl;
-            cout << "3) Display cloud coverage map (LMH)" << endl;
-            cout << "4) Display atmospheric pressure map (pressure index)" << endl;
-            cout << "5) Display atmospheric pressure map (LMH)" << endl;
-            cout << "6) Display weather forecast summary report" << endl;
-            cout << "7) Exit application" << endl;
+            cout << "1) Read in and process a configuration file" << endl;
+            cout << "2) Display city map" << endl;
+            cout << "3) Display cloud coverage map (cloudiness index)" << endl;
+            cout << "4) Display cloud coverage map (LMH)" << endl;
+            cout << "5) Display atmospheric pressure map (pressure index)" << endl;
+            cout << "6) Display atmospheric pressure map (LMH)" << endl;
+            cout << "7) Display weather forecast summary report" << endl;
+            cout << "8) Exit application" << endl;
+            cout << endl;
+            cout << "Please select an option to proceed : ";
 
             cin >> selectedOption;
 
-            switch (selectedOption)
+            if (cin.fail())
             {
-            case 1:
-                cout << "Display city map" << endl;
-                displayCityMap();
-                break;
-            case 2:
-                cout << "Display cloud coverage map (cloudiness index)" << endl;
-                displayCCMapIndex();
-                break;
-            case 3:
-                cout << "Display cloud coverage map (LMH)" << endl;
-                displayCCMapLMH();
-                break;
-            case 4:
-                cout << "Display atmospheric pressure map (pressure index)" << endl;
-                displayAPMapIndex();
-                break;
-            case 5:
-                cout << "Display atmospheric pressure map (LMH)" << endl;
-                displayAPMapLMH();
-                break;
-            case 6:
-                cout << "Display weather forecast summary report" << endl;
-                break;
-            case 7:
-                cout << "Exit application" << endl;
-                Quit();
-                break;
-            default:
-                break;
+                cin.clear();
+                cin.ignore();
+                cout << "Invalid input, please try again!" << endl;
+            }
+            else
+            {
+                if (selectedOption >= 1 && selectedOption <= 8)
+                {
+                    cout << endl;
+
+                    switch (selectedOption)
+                    {
+                    case 1:
+                        cout << "[ Read in and process a configuration file ]" << endl;
+                        readConfigFiles();
+                        break;
+                    case 2:
+                        cout << "[ Display city map ]" << endl;
+                        displayCityMap();
+                        break;
+                    case 3:
+                        cout << "[ Display cloud coverage map (cloudiness index) ]" << endl;
+                        displayCCMapIndex();
+                        break;
+                    case 4:
+                        cout << "[ Display cloud coverage map (LMH) ]" << endl;
+                        displayCCMapLMH();
+                        break;
+                    case 5:
+                        cout << "[ Display atmospheric pressure map (pressure index) ]" << endl;
+                        displayAPMapIndex();
+                        break;
+                    case 6:
+                        cout << "[ Display atmospheric pressure map (LMH) ]" << endl;
+                        displayAPMapLMH();
+                        break;
+                    case 7:
+                        cout << "[ Display weather forecast summary report ]" << endl;
+                        break;
+                    case 8:
+                        cout << "[ Exit application ]" << endl;
+                        Quit();
+                        break;
+                    default:
+                        break;
+                    }
+                }
             }
         }
         else if (displayingMap)
         {
             char ch;
 
-            cout << "Press Enter to return to main menu" << endl;
+            cout << "Press <enter> to return to the main menu..." << endl;
 
             ch = _getch();
 
@@ -163,11 +184,24 @@ void initConfig()
     readCCIndexFile(CCFile);
     readAPIndexFile(APFile);
     
+    /*for (string s : cityList)
+    {
+        cout << s << endl;
+    }*/
+
+    displayMap();
+
     configLoaded = true;
 }
 
-void readConfigFiles(string filename)
+void readConfigFiles()
 {
+    cout << "Please enter config file name" << endl;
+
+    string filename;
+
+    cin >> filename;
+
     fstream inputFile(filename.c_str(), fstream::in);
 
     if (inputFile.good())
@@ -191,6 +225,8 @@ void readConfigFiles(string filename)
             }
         }
         cout << endl;
+
+        initConfig();
     }
     else
     {
@@ -220,6 +256,11 @@ void readCLFile(string filename)
             int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
             int id = stoi(aLine.substr(aLine.find('-') + 1, aLine.find_last_of('-')));
             string name = aLine.substr(aLine.find_last_of('-') + 1);
+            
+            if (find(cityList.begin(), cityList.end(), name) == cityList.end())
+            {
+                cityList.push_back(name);
+            }
 
             mapTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
             mapTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
@@ -375,6 +416,12 @@ void displayMap()
 
 void displayCityMap()
 {
+    if (!configLoaded)
+    {
+        cout << "Config files not yet loaded, please read in a configuration file first!" << endl;
+        return;
+    }
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
@@ -391,6 +438,12 @@ void displayCityMap()
 
 void displayCCMapIndex()
 {
+    if (!configLoaded)
+    {
+        cout << "Config files not yet loaded, please read in a configuration file first!" << endl;
+        return;
+    }
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
@@ -419,6 +472,12 @@ void displayCCMapIndex()
 
 void displayCCMapLMH()
 {
+    if (!configLoaded)
+    {
+        cout << "Config files not yet loaded, please read in a configuration file first!" << endl;
+        return;
+    }
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
@@ -450,6 +509,12 @@ void displayCCMapLMH()
 
 void displayAPMapIndex()
 {
+    if (!configLoaded)
+    {
+        cout << "Config files not yet loaded, please read in a configuration file first!" << endl;
+        return;
+    }
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
@@ -478,6 +543,12 @@ void displayAPMapIndex()
 
 void displayAPMapLMH()
 {
+    if (!configLoaded)
+    {
+        cout << "Config files not yet loaded, please read in a configuration file first!" << endl;
+        return;
+    }
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
@@ -507,6 +578,18 @@ void displayAPMapLMH()
     showGrid();
 }
 
+void displayWeatherReport()
+{
+    cout << endl;
+    cout << "[ Weather Forecast Summary Report ]" << endl;
+    cout << "===================================" << endl;
+
+    for (string s : cityList)
+    {
+
+    }
+}
+
 void deallocMemory()
 {
     if (mapCol <= 0)
@@ -514,10 +597,11 @@ void deallocMemory()
 
     for (int i = 0; i < mapRow; i++)
     {
-        cout << "pointer array at memory address" << &mapTileInfoArray[i] << "deleted" << endl;
+        cout << "Pointer array at memory address " << &mapTileInfoArray[i] << " deleted" << endl;
         delete[] mapTileInfoArray[i];
     }
-        
+    
+    cout << "Pointer array at memory address " << &mapTileInfoArray << " deleted" << endl;
     delete[] mapTileInfoArray;
 
     if (gridCol <= 0)
@@ -525,10 +609,11 @@ void deallocMemory()
 
     for (int i = 0; i < gridRow; i++)
     {
+        cout << "Pointer array at memory address " << &gridArray[i] << " deleted" << endl;
         delete[] gridArray[i];
-        cout << "array deleted" << endl;
     }
 
+    cout << "Pointer array at memory address " << &gridArray << " deleted" << endl;
     delete[] gridArray;
 }
 

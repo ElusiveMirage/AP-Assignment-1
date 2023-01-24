@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <conio.h>
 
 using namespace std;
@@ -35,6 +36,7 @@ string CLFile;
 string CCFile;
 string APFile;
 vector<string> configLines;
+vector<string> cityList;
 //=======================================//
 GridInfo ** mapTileInfoArray = nullptr;
 
@@ -56,7 +58,7 @@ int mapRow = 0; //Number of rows for the actual map
 int mapCol = 0; //Number of cols for the actual map
 string** gridArray = nullptr; //2D array for displaying the map
 
-void readConfigFiles(string); //Function for reading the config file
+void readConfigFiles(); //Function for reading the config file
 
 void readCLFile(string);
 
