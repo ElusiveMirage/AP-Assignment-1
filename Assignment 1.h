@@ -30,23 +30,30 @@ struct GridInfo
 	}
 };
 
+struct CityInfo
+{
+	int id;
+	string name;
+	vector<GridInfo*> cityGrids;
+	vector<GridInfo*> adjacentGrids;
+};
+
 //Initial config and file input
+//=======================================//
 string fileToLoad;
 string CLFile;
 string CCFile;
 string APFile;
 vector<string> configLines;
-vector<string> cityList;
+vector<CityInfo*> cityInfoList;
 //=======================================//
-GridInfo ** mapTileInfoArray = nullptr;
-
-bool configLoaded;
-
-
+GridInfo ** gridTileInfoArray = nullptr; //2D array that stores the data of each tile on the map
+bool configLoaded; //Boolean to check if all config files have been loaded successfully
+//=======================================//
 //Menu display
 bool displayingMap;
 int selectedOption;
-
+//=======================================//
 //Map display
 int xMin, xMax; //Map min x and max x pos
 int yMin, yMax; //Map min y and max y pos
@@ -57,6 +64,7 @@ int gridCol = 0; //Number of cols for entire grid
 int mapRow = 0; //Number of rows for the actual map
 int mapCol = 0; //Number of cols for the actual map
 string** gridArray = nullptr; //2D array for displaying the map
+//=======================================//
 
 void readConfigFiles(); //Function for reading the config file
 
@@ -65,6 +73,8 @@ void readCLFile(string);
 void readCCIndexFile(string);
 
 void readAPIndexFile(string);
+
+void generateCityInfo();
 
 void initConfig(); //Function for initializing the map array, assigning variables etc.
 
@@ -87,3 +97,5 @@ void displayWeatherReport();
 void deallocMemory();
 
 void Quit();
+
+
