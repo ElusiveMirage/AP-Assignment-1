@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
 #include <conio.h>
 
 using namespace std;
@@ -36,6 +37,12 @@ struct CityInfo
 	string name;
 	vector<GridInfo*> cityGrids;
 	vector<GridInfo*> adjacentGrids;
+
+	CityInfo()
+	{
+		id = 0;
+		name = "";
+	}
 };
 
 //Initial config and file input
@@ -65,6 +72,7 @@ int mapRow = 0; //Number of rows for the actual map
 int mapCol = 0; //Number of cols for the actual map
 string** gridArray = nullptr; //2D array for displaying the map
 //=======================================//
+void clearDataContainers();
 
 void readConfigFiles(); //Function for reading the config file
 
@@ -93,6 +101,10 @@ void displayAPMapIndex();
 void displayAPMapLMH();
 
 void displayWeatherReport();
+
+float calculateAverageCC(CityInfo*);
+
+float calculateAverageAP(CityInfo*);
 
 void deallocMemory();
 

@@ -5,21 +5,6 @@
 
 int main()
 {
-    //while (!configLoaded)
-    //{
-    //    displayingMap = false;
-
-    //    cout << "Please enter config file name" << endl;
-
-    //    cin >> fileToLoad;
-
-    //    readConfigFiles(fileToLoad);
-    //    
-    //    initConfig();
-
-    //    displayMap();
-    //}
-
     while (true) {
 
         if (!displayingMap)
@@ -108,23 +93,14 @@ int main()
     }
 }
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
-
 void initConfig()
 {
     xMax = stoi(configLines[0].substr(configLines[0].find('-') + 1));
     xMin = stoi(configLines[0].substr(configLines[0].find('=') + 1, configLines[0].find('-')));
     yMax = stoi(configLines[1].substr(configLines[1].find('-') + 1));
     yMin = stoi(configLines[1].substr(configLines[1].find('=') + 1, configLines[0].find('-')));
+
+    cout << "Grid ranges set..." << endl;
 
     CLFile = configLines[2];
     CCFile = configLines[3];
@@ -184,11 +160,8 @@ void initConfig()
     readCLFile(CLFile);
     readCCIndexFile(CCFile);
     readAPIndexFile(APFile);
-    
-    /*for (string s : cityList)
-    {
-        cout << s << endl;
-    }*/
+
+    cout << "All configuration files loaded successfully. Returning to main menu..." << endl;
 
     generateCityInfo();
 
@@ -197,10 +170,20 @@ void initConfig()
     configLoaded = true;
 }
 
+void clearDataContainers()
+{
+    configLines.clear();
+    cityInfoList.clear();
+    gridTileInfoArray = new GridInfo * [mapRow];
+    gridArray = new string * [gridRow];
+}
+
 void readConfigFiles()
 {
     cout << "Please enter config file name" << endl;
-    //TODO : clear all necessary data containers first
+    
+    clearDataContainers();
+
     string filename;
 
     cin >> filename;
@@ -275,7 +258,6 @@ void readCLFile(string filename)
             gridTileInfoArray[x - xMinOffset][y - yMinOffset].cityID = id;
             gridTileInfoArray[x - xMinOffset][y - yMinOffset].cityName = name;
         }
-        cout << endl;
 
         for (int i = 0; i < cityList.size(); i++)
         {
@@ -283,10 +265,9 @@ void readCLFile(string filename)
             info->name = cityList[i];
             info->id = idList[i];
             cityInfoList.push_back(info);
-
-            cout << info->name << endl;
-            cout << info->id << endl;
         }
+
+        cout << "City locations loaded..." << endl;
     }
     else
     {
@@ -320,7 +301,8 @@ void readCCIndexFile(string filename)
             gridTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
             gridTileInfoArray[x - xMinOffset][y - yMinOffset].cc = cc;
         }
-        cout << endl;
+
+        cout << "Cloud coverage data loaded..." << endl;
     }
     else
     {
@@ -354,7 +336,8 @@ void readAPIndexFile(string filename)
             gridTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
             gridTileInfoArray[x - xMinOffset][y - yMinOffset].ap = ap;
         }
-        cout << endl;
+
+        cout << "Atmospheric pressure data loaded..." << endl;
     }
     else
     {
@@ -386,10 +369,9 @@ void generateCityInfo()
                         if (x == 0 && y == 0)
                             continue;
 
-                        if (i + x > xMax || j + y > yMax || i + x < xMin || j + y < yMin)
+                        if (i + x > xMax || j + y > yMax || i + x < xMin || j + y < yMin) //if adjacent tile outside map bounds, ignore
                         {
-                            cout << "denied " << endl;
-                            continue;
+                            continue; 
                         }
 
                         if (gridTileInfoArray[i + x][j + y].cityName == gridTileInfoArray[i][j].cityName) //if adjacent tile is part of current tile's city, ignore
@@ -669,28 +651,90 @@ void displayWeatherReport()
     cout << "[ Weather Forecast Summary Report ]" << endl;
     cout << "===================================" << endl;
 
-    /*for (CityInfo city : cityInfoList)
+    for (CityInfo* city : cityInfoList)
     {
-        int id;
-        float aveCC;
-        float aveAP;
-        float rainProb;
+        float averageCC = calculateAverageCC(city);
+        float averageAP = calculateAverageAP(city);
 
-        for (int i = 0; i < mapRow; i++)
+        string CCSymbol;
+        string APSymbol;
+
+        if (averageCC >= 0 && averageCC < 35)
         {
-            for (int j = 0; j < mapCol; j++)
-            {
-                if (gridTileInfoArray[i][j].ap != NULL)
-                {
-                    if (gridTileInfoArray[i][j].cityName == s)
-                    {
-                        id = gridTileInfoArray[i][j].cityID;
-                    }
-                }
-            }
+            CCSymbol = " (L) ";
         }
-        
-    }*/
+        if (averageCC >= 35 && averageCC < 65)
+        {
+            CCSymbol = " (M) ";
+        }
+        if (averageCC >= 65 && averageCC < 100)
+        {
+            CCSymbol = " (H) ";
+        }
+
+        if (averageAP >= 0 && averageAP < 35)
+        {
+            APSymbol = " (L) ";
+        }
+        if (averageAP >= 35 && averageAP < 65)
+        {
+            APSymbol = " (M) ";
+        }
+        if (averageAP >= 65 && averageAP < 100)
+        {
+            APSymbol = " (H) ";
+        }
+
+
+        cout << "City Name : " << city->name << endl;
+        cout << "City ID   : " << city->id << endl;
+        cout << "Ave. Cloud Cover (ACC) : " << fixed << setprecision(2) << averageCC << endl;
+        cout << "Ave. Pressure (AP) : " << averageAP << endl;
+
+        cout << endl;
+    }
+}
+
+float calculateAverageCC(CityInfo *city)
+{
+    float CC = 0;
+    int cityCC = 0;
+    int surroundingCC = 0;
+
+    for (GridInfo* grid : city->cityGrids)
+    {
+        cityCC += grid->cc;
+    }
+
+    for (GridInfo* grid : city->adjacentGrids)
+    {
+        surroundingCC += grid->cc;
+    }
+
+    CC = (float)(cityCC + surroundingCC) / (float)(city->cityGrids.size() + city->adjacentGrids.size());
+
+    return CC;
+}
+
+float calculateAverageAP(CityInfo *city)
+{
+    float AP = 0;
+    int cityAP = 0;
+    int surroundingAP = 0;
+
+    for (GridInfo* grid : city->cityGrids)
+    {
+        cityAP += grid->ap;
+    }
+
+    for (GridInfo* grid : city->adjacentGrids)
+    {
+        surroundingAP += grid->ap;
+    }
+
+    AP = (float)(cityAP + surroundingAP) / (float)(city->cityGrids.size() + city->adjacentGrids.size());
+
+    return AP;
 }
 
 void deallocMemory()
