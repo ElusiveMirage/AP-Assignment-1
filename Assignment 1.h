@@ -6,7 +6,6 @@
 #include <vector>
 #include <algorithm>
 #include <iomanip>
-#include <conio.h>
 
 using namespace std;
 
@@ -31,6 +30,7 @@ struct GridInfo
 	}
 };
 
+//City info struct
 struct CityInfo
 {
 	int id;
@@ -58,7 +58,7 @@ GridInfo ** gridTileInfoArray = nullptr; //2D array that stores the data of each
 bool configLoaded; //Boolean to check if all config files have been loaded successfully
 //=======================================//
 //Menu display
-bool displayingMap;
+bool displayingOutput;
 int selectedOption;
 //=======================================//
 //Map display
@@ -73,6 +73,8 @@ int mapCol = 0; //Number of cols for the actual map
 string** gridArray = nullptr; //2D array for displaying the map
 //=======================================//
 void clearDataContainers();
+
+bool isEnterPressed();
 
 void readConfigFiles(); //Function for reading the config file
 
@@ -105,6 +107,10 @@ void displayWeatherReport();
 float calculateAverageCC(CityInfo*);
 
 float calculateAverageAP(CityInfo*);
+
+float calculateRainProb(string, string);
+
+void displayRainProb(string, string);
 
 void deallocMemory();
 

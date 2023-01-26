@@ -7,7 +7,7 @@ int main()
 {
     while (true) {
 
-        if (!displayingMap)
+        if (!displayingOutput)
         {
             cout << endl;
             cout << "Student ID   : 7895379" << endl;
@@ -79,16 +79,20 @@ int main()
                 }
             }
         }
-        else if (displayingMap)
+        else
         {
-            char ch;
+            string str = "";
+            cin.clear();
+            cin.ignore();
 
-            cout << "Press <enter> to return to the main menu..." << endl;
+            cout << "Press <enter> to go back to main menu...";
 
-            ch = _getch();
-
-            if (cin.get() == '\n')
-                displayingMap = false;
+            cin.ignore();
+           
+            if (str.length() == 0)
+            {
+                displayingOutput = false;
+            }
         }
     }
 }
@@ -178,6 +182,17 @@ void clearDataContainers()
     gridArray = new string * [gridRow];
 }
 
+bool isEnterPressed()
+{
+    string str;
+    
+    getline(cin, str);
+    if (str == "") {
+        return true;
+    }
+    return false;
+}
+
 void readConfigFiles()
 {
     cout << "Please enter config file name" << endl;
@@ -194,7 +209,6 @@ void readConfigFiles()
     {
         cout << endl;
         cout << "Reading contents of file : " << filename << endl;
-        cout << endl;
 
         string aLine;
 
@@ -399,15 +413,6 @@ void generateCityInfo()
             }
         }
     }
-
-    //for (CityInfo* info : cityInfoList)
-    //{
-    //    cout << info->name << endl;
-    //    for (GridInfo* grid : info->cityGrids)
-    //    {
-    //        cout << grid->xPos << "," << grid->yPos << endl;
-    //    }
-    //}
 }
 
 void showGrid()
@@ -429,7 +434,7 @@ void showGrid()
         cout << endl;
     }
 
-    displayingMap = true;
+    displayingOutput = true;
 }
 
 void displayMap()
@@ -647,6 +652,14 @@ void displayAPMapLMH()
 
 void displayWeatherReport()
 {
+    if (!configLoaded)
+    {
+        cout << "Config files not yet loaded, please read in a configuration file first!" << endl;
+        return;
+    }
+
+    displayingOutput = true;
+
     cout << endl;
     cout << "[ Weather Forecast Summary Report ]" << endl;
     cout << "===================================" << endl;
@@ -661,35 +674,37 @@ void displayWeatherReport()
 
         if (averageCC >= 0 && averageCC < 35)
         {
-            CCSymbol = " (L) ";
+            CCSymbol = "L";
         }
         if (averageCC >= 35 && averageCC < 65)
         {
-            CCSymbol = " (M) ";
+            CCSymbol = "M";
         }
         if (averageCC >= 65 && averageCC < 100)
         {
-            CCSymbol = " (H) ";
+            CCSymbol = "H";
         }
 
         if (averageAP >= 0 && averageAP < 35)
         {
-            APSymbol = " (L) ";
+            APSymbol = "L";
         }
         if (averageAP >= 35 && averageAP < 65)
         {
-            APSymbol = " (M) ";
+            APSymbol = "M";
         }
         if (averageAP >= 65 && averageAP < 100)
         {
-            APSymbol = " (H) ";
+            APSymbol = "H";
         }
-
 
         cout << "City Name : " << city->name << endl;
         cout << "City ID   : " << city->id << endl;
-        cout << "Ave. Cloud Cover (ACC) : " << fixed << setprecision(2) << averageCC << endl;
-        cout << "Ave. Pressure (AP) : " << averageAP << endl;
+        cout << "Ave. Cloud Cover (ACC)  : " << fixed << setprecision(2) << averageCC << "  ( " << CCSymbol << " )" << endl;
+        cout << "Ave. Pressure (AP)      : " << fixed << setprecision(2) << averageAP << "  ( " << APSymbol << " )" << endl;
+        cout << "Probability of Rain (%) : " << calculateRainProb(CCSymbol, APSymbol) << endl;
+
+        displayRainProb(CCSymbol, APSymbol);
 
         cout << endl;
     }
@@ -735,6 +750,114 @@ float calculateAverageAP(CityInfo *city)
     AP = (float)(cityAP + surroundingAP) / (float)(city->cityGrids.size() + city->adjacentGrids.size());
 
     return AP;
+}
+
+float calculateRainProb(string cc, string ap)
+{
+    float rainProb = 0.0f;
+
+    if (ap == "L")
+    {
+        if (cc == "H")
+        {
+            rainProb = 90.00f;
+        }
+        else if (cc == "M")
+        {
+            rainProb = 80.00f;
+        }
+        else if (cc == "L")
+        {
+            rainProb = 70.00f;
+        }
+    }
+    else if (ap == "M")
+    {
+        if (cc == "H")
+        {
+            rainProb = 60.00f;
+        }
+        else if (cc == "M")
+        {
+            rainProb = 50.00f;
+        }
+        else if (cc == "L")
+        {
+            rainProb = 40.00f;
+        }
+    }
+    else if (ap == "H")
+    {
+        if (cc == "H")
+        {
+            rainProb = 30.00f;
+        }
+        else if (cc == "M")
+        {
+            rainProb = 20.00f;
+        }
+        else if (cc == "L")
+        {
+            rainProb = 10.00f;
+        }
+    }
+
+    return rainProb;
+}
+
+void displayRainProb(string cc, string ap)
+{
+    if (ap == "L")
+    {
+        cout << "~  ~  ~  ~" << endl;
+        cout << "~  ~  ~  ~  ~" << endl;
+
+        if(cc == "H")
+        {
+            cout << "\\ \\ \\ \\ \\ " << endl;
+
+        }
+        else if (cc == "M")
+        {
+            cout << "  \\ \\ \\ \\ " << endl;
+        }
+        else if (cc == "L")
+        {
+            cout << "     \\ \\ \\ " << endl;
+        }
+    }
+    else if (ap == "M")
+    {
+        cout << "~  ~  ~  ~" << endl;
+        cout << "~  ~  ~  ~  ~" << endl;
+
+        if (cc == "H")
+        {
+            cout << "        \\ \\ " << endl;
+        }
+        else if (cc == "M")
+        {
+            cout << "           \\ " << endl;
+        }
+    }
+    else if (ap == "L")
+    {
+        if (cc == "H")
+        {
+            cout << "~  ~  ~" << endl;
+            cout << "~  ~  ~  ~" << endl;
+        }
+        else if (cc == "M")
+        {
+            cout << "~  ~" << endl;
+            cout << "~  ~  ~" << endl;
+        }
+        else if (cc == "L")
+        {
+            cout << "~" << endl;
+            cout << "~  ~" << endl;
+        }
+    }
 }
 
 void deallocMemory()
