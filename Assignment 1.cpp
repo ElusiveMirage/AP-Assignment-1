@@ -136,7 +136,7 @@ void initConfig()
     if (gridRow > 0)
     {
         gridTileInfoArray = new GridInfo * [mapRow];
-
+        int count = 0;
         for (int i = 0; i < mapRow; i++)
         { 
             gridTileInfoArray[i] = new GridInfo[mapCol];
@@ -267,10 +267,10 @@ void readCLFile(string filename)
                 idList.push_back(id);
             }
 
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].cityID = id;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].cityName = name;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].xPos = x;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].yPos = y;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].cityID = id;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].cityName = name;
         }
 
         for (int i = 0; i < cityList.size(); i++)
@@ -311,9 +311,9 @@ void readCCIndexFile(string filename)
             int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
             int cc = stoi(aLine.substr(aLine.find('-') + 1));
 
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].cc = cc;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].xPos = x;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].yPos = y;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].cc = cc;
         }
 
         cout << "Cloud coverage data loaded..." << endl;
@@ -346,9 +346,9 @@ void readAPIndexFile(string filename)
             int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
             int ap = stoi(aLine.substr(aLine.find('-') + 1));
 
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].xPos = x;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].yPos = y;
-            gridTileInfoArray[x - xMinOffset][y - yMinOffset].ap = ap;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].xPos = x;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].yPos = y;
+            gridTileInfoArray[y - yMinOffset][x - xMinOffset].ap = ap;
         }
 
         cout << "Atmospheric pressure data loaded..." << endl;
@@ -376,19 +376,19 @@ void generateCityInfo()
                 }
 
                 //Check all 8 directions and push pointer to grid info of surrounding tiles to vector
-                for (int x = -1; x < 2; x++)
+                for (int y = -1; y < 2; y++)
                 {
-                    for (int y = -1; y < 2; y++)
+                    for (int x = -1; x < 2; x++)
                     {
                         if (x == 0 && y == 0)
                             continue;
 
-                        if (i + x > xMax || j + y > yMax || i + x < xMin || j + y < yMin) //if adjacent tile outside map bounds, ignore
+                        if (i + y > yMax || j + x > xMax || i + y < yMin || j + x < xMin) //if adjacent tile outside map bounds, ignore
                         {
                             continue; 
                         }
 
-                        if (gridTileInfoArray[i + x][j + y].cityName == gridTileInfoArray[i][j].cityName) //if adjacent tile is part of current tile's city, ignore
+                        if (gridTileInfoArray[i + y][j + x].cityName == gridTileInfoArray[i][j].cityName) //if adjacent tile is part of current tile's city, ignore
                         {
                             continue;
                         }
@@ -398,12 +398,12 @@ void generateCityInfo()
                             {
                                 if (info->name == gridTileInfoArray[i][j].cityName)
                                 {
-                                    if (find(info->adjacentGrids.begin(), info->adjacentGrids.end(), &gridTileInfoArray[i + x][j + y]) != info->adjacentGrids.end())
+                                    if (find(info->adjacentGrids.begin(), info->adjacentGrids.end(), &gridTileInfoArray[i + y][j + x]) != info->adjacentGrids.end())
                                     {
                                         continue; //skip if pointer to tile already exists in the vector
                                     }
                                     else
-                                        info->adjacentGrids.push_back(&gridTileInfoArray[i + x][j + y]); //push pointer to adjacent tile into vector
+                                        info->adjacentGrids.push_back(&gridTileInfoArray[i + y][j + x]); //push pointer to adjacent tile into vector
                                 
                                 }
                             }
@@ -435,6 +435,17 @@ void showGrid()
     }
 
     displayingOutput = true;
+}
+
+void clearGrid()
+{
+    for (int i = 0; i < mapRow; i++)
+    {
+        for (int j = 0; j < mapCol; j++)
+        {
+            gridArray[i + 2][j + 2] = "";
+        }
+    }
 }
 
 void displayMap()
@@ -494,13 +505,15 @@ void displayCityMap()
         return;
     }
 
+    clearGrid();
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
         {
             if (gridTileInfoArray[i][j].cityName != "")
             {
-                gridArray[j + 2][i + 2] = to_string(gridTileInfoArray[i][j].cityID) + "  ";
+                gridArray[i + 2][j + 2] = to_string(gridTileInfoArray[i][j].cityID) + "  ";
             }
         }
     }
@@ -516,26 +529,30 @@ void displayCCMapIndex()
         return;
     }
 
+    clearGrid();
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
         {
-            if (gridTileInfoArray[i][j].cc != NULL)
-            {
-                string temp;
+            string temp;
 
-                if (gridTileInfoArray[i][j].cc <= 0 || gridTileInfoArray[i][j].cc < 10)
+            if (gridTileInfoArray[i][j].cc != -1)
+            {
+                if (gridTileInfoArray[i][j].cc >= 0 && gridTileInfoArray[i][j].cc < 10)
                 {
                     temp = "0";
                 }
-
-                if (gridTileInfoArray[i][j].cc >= 10 && gridTileInfoArray[i][j].cc < 100)
+                else if (gridTileInfoArray[i][j].cc >= 10 && gridTileInfoArray[i][j].cc < 100)
                 {
                     temp = to_string(gridTileInfoArray[i][j].cc)[0];
                 }
 
-                gridArray[j + 2][i + 2] = temp + "  ";
-            }
+                if (i + 2 <= gridRow - 2 && j + 2 <= gridCol - 2)
+                {
+                    gridArray[i + 2][j + 2] = temp + "  ";
+                }
+            }           
         }
     }
 
@@ -550,14 +567,16 @@ void displayCCMapLMH()
         return;
     }
 
+    clearGrid();
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
         {
-            if (gridTileInfoArray[i][j].cc != NULL)
-            {
-                string temp;
+            string temp;
 
+            if (gridTileInfoArray[i][j].cc != -1)
+            {
                 if (gridTileInfoArray[i][j].cc >= 0 && gridTileInfoArray[i][j].cc < 35)
                 {
                     temp = "L";
@@ -571,7 +590,10 @@ void displayCCMapLMH()
                     temp = "H";
                 }
 
-                gridArray[j + 2][i + 2] = temp + "  ";
+                if (i + 2 <= gridRow - 2 && j + 2 <= gridCol - 2)
+                {
+                    gridArray[i + 2][j + 2] = temp + "  ";
+                }
             }
         }
     }
@@ -579,7 +601,7 @@ void displayCCMapLMH()
     showGrid();
 }
 
-void displayAPMapIndex()
+void displayAPMapIndex() //Displays atmospheric pressure value on map
 {
     if (!configLoaded)
     {
@@ -587,14 +609,16 @@ void displayAPMapIndex()
         return;
     }
 
+    clearGrid();
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
         {
-            if (gridTileInfoArray[i][j].ap != NULL)
-            {
-                string temp;
+            string temp;
 
+            if (gridTileInfoArray[i][j].ap != -1)
+            {
                 if (gridTileInfoArray[i][j].ap <= 0 || gridTileInfoArray[i][j].ap < 10)
                 {
                     temp = "0";
@@ -605,7 +629,10 @@ void displayAPMapIndex()
                     temp = to_string(gridTileInfoArray[i][j].ap)[0];
                 }
 
-                gridArray[j + 2][i + 2] = temp + "  ";
+                if (i + 2 <= gridRow - 2 && j + 2 <= gridCol - 2)
+                {
+                    gridArray[i + 2][j + 2] = temp + "  ";
+                }
             }
         }
     }
@@ -613,7 +640,7 @@ void displayAPMapIndex()
     showGrid();
 }
 
-void displayAPMapLMH()
+void displayAPMapLMH() //Displays atmospheric pressure value on map in LMH
 {
     if (!configLoaded)
     {
@@ -621,14 +648,16 @@ void displayAPMapLMH()
         return;
     }
 
+    clearGrid();
+
     for (int i = 0; i < mapRow; i++)
     {
         for (int j = 0; j < mapCol; j++)
         {
-            if (gridTileInfoArray[i][j].ap != NULL)
-            {
-                string temp;
+            string temp;
 
+            if (gridTileInfoArray[i][j].ap != -1)
+            {
                 if (gridTileInfoArray[i][j].ap >= 0 && gridTileInfoArray[i][j].ap < 35)
                 {
                     temp = "L";
@@ -642,7 +671,10 @@ void displayAPMapLMH()
                     temp = "H";
                 }
 
-                gridArray[j + 2][i + 2] = temp + "  ";
+                if (i + 2 <= gridRow - 2 && j + 2 <= gridCol - 2)
+                {
+                    gridArray[i + 2][j + 2] = temp + "  ";
+                }
             }
         }
     }
@@ -650,7 +682,7 @@ void displayAPMapLMH()
     showGrid();
 }
 
-void displayWeatherReport()
+void displayWeatherReport() //Displays weather forecast summary report for each city on map
 {
     if (!configLoaded)
     {
@@ -715,6 +747,7 @@ float calculateAverageCC(CityInfo *city)
     float CC = 0;
     int cityCC = 0;
     int surroundingCC = 0;
+    int tilesToIgnore = 0;
 
     for (GridInfo* grid : city->cityGrids)
     {
@@ -723,10 +756,16 @@ float calculateAverageCC(CityInfo *city)
 
     for (GridInfo* grid : city->adjacentGrids)
     {
+        if (grid->cc == -1)
+        {
+            tilesToIgnore++;
+            continue;
+        }
+
         surroundingCC += grid->cc;
     }
 
-    CC = (float)(cityCC + surroundingCC) / (float)(city->cityGrids.size() + city->adjacentGrids.size());
+    CC = (float)(cityCC + surroundingCC) / (float)(city->cityGrids.size() + city->adjacentGrids.size() - tilesToIgnore);
 
     return CC;
 }
@@ -736,6 +775,7 @@ float calculateAverageAP(CityInfo *city)
     float AP = 0;
     int cityAP = 0;
     int surroundingAP = 0;
+    int tilesToIgnore = 0;
 
     for (GridInfo* grid : city->cityGrids)
     {
@@ -744,10 +784,16 @@ float calculateAverageAP(CityInfo *city)
 
     for (GridInfo* grid : city->adjacentGrids)
     {
+        if (grid->ap == -1)
+        {
+            tilesToIgnore++;
+            continue;
+        }
+
         surroundingAP += grid->ap;
     }
 
-    AP = (float)(cityAP + surroundingAP) / (float)(city->cityGrids.size() + city->adjacentGrids.size());
+    AP = (float)(cityAP + surroundingAP) / (float)(city->cityGrids.size() + city->adjacentGrids.size() - tilesToIgnore);
 
     return AP;
 }

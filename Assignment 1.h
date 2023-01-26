@@ -24,8 +24,8 @@ struct GridInfo
 		xPos = 0;
 		yPos = 0;
 		cityID = 0;
-		cc = 0;
-		ap = 0;
+		cc = -1;
+		ap = -1;
 		cityName = "";
 	}
 };
@@ -89,6 +89,8 @@ void generateCityInfo();
 void initConfig(); //Function for initializing the map array, assigning variables etc.
 
 void showGrid(); //Iterates through map array and prints out the stored string at each position to the console
+
+void clearGrid();
 
 void displayMap();
 
