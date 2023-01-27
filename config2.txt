@@ -11,9 +11,9 @@ citylocation2.txt
 
 // "next day" forecasted cloud coverage (%) for 
 // each [x,y] grid-area
-cloudcover.txt
+cloudcover2.txt
 
 // "next day" forecasted atmospheric pressure intensity (%) for
 // each [x,y] grid-area
-pressure.txt
+pressure2.txt
 

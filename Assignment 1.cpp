@@ -117,20 +117,20 @@ void initConfig()
 
     if (xMin > 0)
     {
-        xMinOffset = xMin;
+        xOffset = xMin;
     }
     else
     {
-        xMinOffset = 0;
+        xOffset = 0;
     }
 
     if (yMin > 0)
     {
-        yMinOffset = yMin;
+        yOffset = yMin;
     }
     else
     {
-        yMinOffset = 0;
+        yOffset = 0;
     }
 
     if (gridRow > 0)
@@ -221,7 +221,6 @@ void readConfigFiles()
             if (aLine[0] != '/')
             {
                 configLines.push_back(aLine);
-
             }
         }
         cout << endl;
@@ -259,7 +258,12 @@ void readCLFile(string filename)
             int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
             int id = stoi(aLine.substr(aLine.find('-') + 1, aLine.find_last_of('-')));
             string name = aLine.substr(aLine.find_last_of('-') + 1);
-      
+ 
+            if (y - yOffset > mapRow || x - xOffset > mapCol)
+            {
+                cout << "WARNING : Value" << "[ " << x << ", " << y << " ]" << "out of range of map bounds" << endl;
+                continue;
+            }
 
             if (find(cityList.begin(), cityList.end(), name) == cityList.end())
             {
@@ -267,10 +271,10 @@ void readCLFile(string filename)
                 idList.push_back(id);
             }
 
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].xPos = x;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].yPos = y;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].cityID = id;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].cityName = name;
+            gridTileInfoArray[y - yOffset][x - xOffset].xPos = x;
+            gridTileInfoArray[y - yOffset][x - xOffset].yPos = y;
+            gridTileInfoArray[y - yOffset][x - xOffset].cityID = id;
+            gridTileInfoArray[y - yOffset][x - xOffset].cityName = name;
         }
 
         for (int i = 0; i < cityList.size(); i++)
@@ -311,9 +315,15 @@ void readCCIndexFile(string filename)
             int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
             int cc = stoi(aLine.substr(aLine.find('-') + 1));
 
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].xPos = x;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].yPos = y;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].cc = cc;
+            if (y - yOffset > mapRow || x - xOffset > mapCol)
+            {
+                cout << "WARNING : Value" << "[ " << x << ", " << y << " ]" << "out of range of map bounds" << endl;
+                continue;
+            }
+
+            gridTileInfoArray[y - yOffset][x - xOffset].xPos = x;
+            gridTileInfoArray[y - yOffset][x - xOffset].yPos = y;
+            gridTileInfoArray[y - yOffset][x - xOffset].cc = cc;
         }
 
         cout << "Cloud coverage data loaded..." << endl;
@@ -346,9 +356,15 @@ void readAPIndexFile(string filename)
             int y = stoi(aLine.substr(aLine.find(',') + 2, aLine.find(']')));
             int ap = stoi(aLine.substr(aLine.find('-') + 1));
 
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].xPos = x;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].yPos = y;
-            gridTileInfoArray[y - yMinOffset][x - xMinOffset].ap = ap;
+            if (y - yOffset > mapRow || x - xOffset > mapCol)
+            {
+                cout << "WARNING : Value" << "[ " << x << ", " << y << " ]" << "out of range of map bounds" << endl;
+                continue;
+            }
+
+            gridTileInfoArray[y - yOffset][x - xOffset].xPos = x;
+            gridTileInfoArray[y - yOffset][x - xOffset].yPos = y;
+            gridTileInfoArray[y - yOffset][x - xOffset].ap = ap;
         }
 
         cout << "Atmospheric pressure data loaded..." << endl;
@@ -383,7 +399,7 @@ void generateCityInfo()
                         if (x == 0 && y == 0)
                             continue;
 
-                        if (i + y > yMax || j + x > xMax || i + y < yMin || j + x < xMin) //if adjacent tile outside map bounds, ignore
+                        if (i + y > yMax - yOffset || j + x > xMax - xOffset || i + y < yMin - yOffset || j + x < xMin - xOffset) //if adjacent tile outside map bounds, ignore
                         {
                             continue; 
                         }
@@ -437,7 +453,7 @@ void showGrid()
     displayingOutput = true;
 }
 
-void clearGrid()
+void clearGrid() 
 {
     for (int i = 0; i < mapRow; i++)
     {
@@ -459,7 +475,7 @@ void displayMap()
             {
                 if (j > 1 && j < gridCol - 1)
                 {
-                    int temp = j + yMinOffset - 2;
+                    int temp = j + yOffset - 2;
 
                     if (temp >= 10)
                         gridArray[i][j] = to_string((temp)) + " ";
@@ -472,7 +488,7 @@ void displayMap()
             {
                 if (i > 1 && i < gridRow - 1)
                 {
-                    int temp2 = i + xMinOffset - 2;
+                    int temp2 = i + xOffset - 2;
 
                     if(temp2 >= 10)
                         gridArray[i][j] = to_string((temp2)) + " ";
@@ -513,7 +529,10 @@ void displayCityMap()
         {
             if (gridTileInfoArray[i][j].cityName != "")
             {
-                gridArray[i + 2][j + 2] = to_string(gridTileInfoArray[i][j].cityID) + "  ";
+                if (i + 2 <= gridRow - 2 && j + 2 <= gridCol - 2)
+                {
+                    gridArray[i + 2][j + 2] = to_string(gridTileInfoArray[i][j].cityID) + "  ";
+                }
             }
         }
     }
@@ -914,7 +933,7 @@ void deallocMemory()
     for (int i = 0; i < mapRow; i++)
     {
         cout << "Pointer array at memory address " << &gridTileInfoArray[i] << " deleted" << endl;
-        delete[] gridTileInfoArray[i];
+        delete[] gridTileInfoArray[i]; 
     }
     
     cout << "Pointer array at memory address " << &gridTileInfoArray << " deleted" << endl;
