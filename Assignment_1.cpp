@@ -5,9 +5,10 @@
 
 int main()
 {
+    //Main program loop
     while (true) {
 
-        if (!displayingOutput)
+        if (!displayingOutput) //Show menu options when not displaying output
         {
             cout << endl;
             cout << "Student ID   : 7895379" << endl;
@@ -25,9 +26,9 @@ int main()
             cout << endl;
             cout << "Please select an option to proceed : ";
 
-            cin >> selectedOption;
+            cin >> selectedOption; 
 
-            if (cin.fail())
+            if (cin.fail()) //Check for invalid input
             {
                 cin.clear();
                 cin.ignore();
@@ -39,7 +40,7 @@ int main()
                 {
                     cout << endl;
 
-                    switch (selectedOption)
+                    switch (selectedOption) //Switch case to process user input
                     {
                     case 1:
                         cout << "[ Read in and process a configuration file ]" << endl;
@@ -79,19 +80,49 @@ int main()
                 }
             }
         }
-        else
-        {
+        else //Instructions for user when displaying output
+        {     
             string str = "";
-            cin.clear();
-            cin.ignore();
+            cout << "Press <enter> to return to the main menu." << endl;
+            cout << "Enter getinfo (x-coord, y-coord) to display grid tile info." << endl;
+            
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            cout << "Press <enter> to go back to main menu...";
-
-            cin.ignore();
-           
-            if (str.length() == 0)
+            getline(cin, str, '\n');
+            
+            
+            if (str.empty())
             {
                 displayingOutput = false;
+            }
+            else if (str.find("getinfo") != string::npos) //Command to display the info of a tile at the specified coordinate
+            {
+                if (str.find('(') != string::npos && str.find(',') != string::npos && str.find(')') != string::npos)
+                {
+                    int x = stoi(str.substr(str.find('(') + 1, str.find(',')));
+                    int y = stoi(str.substr(str.find(',') + 1, str.find(')')));
+                    
+                    cout << "ID:" << gridTileInfoArray[y - yOffset][x - xOffset].cityID << " " << gridTileInfoArray[y - yOffset][x - xOffset].cityName << endl;
+                    cout << "Cloud Coverage : " << gridTileInfoArray[y - yOffset][x - xOffset].cc << endl;
+                    cout << "Atmospheric Pressure : " << gridTileInfoArray[y - yOffset][x - xOffset].ap << endl;
+                }
+                else
+                {
+                    cout << "Invalid input " << endl;
+
+                    cin.setstate(cin.goodbit);
+                    cin.peek();
+                }
+                cin.setstate(cin.goodbit);
+
+                cin.peek();
+            }
+            else
+            {
+                cout << "Invalid input " << endl;
+
+                cin.setstate(cin.goodbit);
+                cin.peek();
             }
         }
     }
@@ -115,7 +146,8 @@ void initConfig()
     mapCol = (xMax - xMin) + 1;
     mapRow = (yMax - yMin) + 1;
 
-    if (xMin > 0)
+    //Set offset if min range more than zero
+    if (xMin > 0) 
     {
         xOffset = xMin;
     }
@@ -180,17 +212,6 @@ void clearDataContainers()
     cityInfoList.clear();
     gridTileInfoArray = new GridInfo * [mapRow];
     gridArray = new string * [gridRow];
-}
-
-bool isEnterPressed()
-{
-    string str;
-    
-    getline(cin, str);
-    if (str == "") {
-        return true;
-    }
-    return false;
 }
 
 void readConfigFiles()
@@ -513,7 +534,7 @@ void displayMap()
     }
 }
 
-void displayCityMap()
+void displayCityMap() 
 {
     if (!configLoaded)
     {
@@ -540,7 +561,7 @@ void displayCityMap()
     showGrid();
 }
 
-void displayCCMapIndex()
+void displayCCMapIndex() //Display cloud coverage value on map
 {
     if (!configLoaded)
     {
@@ -578,7 +599,7 @@ void displayCCMapIndex()
     showGrid();
 }
 
-void displayCCMapLMH()
+void displayCCMapLMH() //Display cloud coverage value on map in LMH
 {
     if (!configLoaded)
     {
